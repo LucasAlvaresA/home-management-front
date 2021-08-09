@@ -27,20 +27,24 @@ export default function Wall() {
   const [list, setList] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
-  const [modalTitleField, setModalTitleField] = useState("");
-  const [modalFileField, setModalFileField] = useState("");
   const [modalId, setModalId] = useState("");
-  const [modalUnitList, setModalUnitList] = useState([])
-  const [modalAreaList, setModalAreaList] = useState([])
-  const [modalUnitId, setModalUnitId] = useState(0)
-  const [modalAreaId, setModalAreaId] = useState(0)
-  const [modalDateField, setModalDateField] = useState('')
+  const [modalUnitList, setModalUnitList] = useState([]);
+  const [modalAreaList, setModalAreaList] = useState([]);
+  const [modalUnitId, setModalUnitId] = useState(0);
+  const [modalAreaId, setModalAreaId] = useState(0);
+  const [modalDateField, setModalDateField] = useState("");
 
   const fields = [
     { label: "Unidade", key: "name_unit", sorter: false },
-    { label: "Área", key: "name_area", sorter: false},
+    { label: "Área", key: "name_area", sorter: false },
     { label: "Data da reserva", key: "reservation_date" },
-    { label: "Ações", key: "actions", _style: { width: "1px" }, sorter: false,filter: false},
+    {
+      label: "Ações",
+      key: "actions",
+      _style: { width: "1px" },
+      sorter: false,
+      filter: false,
+    },
   ];
 
   useEffect(() => {
@@ -61,33 +65,36 @@ export default function Wall() {
   };
 
   const getUnitList = async () => {
-    const result = await api.getUnits()
-    if(result.error === '') {
-      setModalUnitList(result.list)
+    const result = await api.getUnits();
+    if (result.error === "") {
+      setModalUnitList(result.list);
     }
-  }
+  };
 
   const getAreaList = async () => {
-    const result = await api.getAreas()
-    if(result.error === '') {
-      setModalAreaList(result.list)
+    const result = await api.getAreas();
+    if (result.error === "") {
+      setModalAreaList(result.list);
     }
-  }
+  };
 
   const handleCloseModal = () => {
     setShowModal(false);
   };
 
-  const handleEditButton = (index) => {
+  const handleEditButton = (id) => {
+    let index = list.findIndex(v=>v.id===id)
+
     setModalId(list[index]["id"]);
-    setModalTitleField(list[index]["title"]);
-    // setModalBodyField(list[index]["body"]);
+    setModalUnitId(list[index]["id_unit"])
+    setModalAreaId(list[index]["id_area"])
+    setModalDateField(list[index]["reservation_date"])
     setShowModal(true);
   };
 
   const handleRemoveButton = async (index) => {
     if (window.confirm("Tem certeza que deseja excluir?")) {
-      const result = await api.removeDocument(list[index]["id"]);
+      const result = await api.removeReservation(list[index]["id"]);
       if (result.error === "") {
         getList();
       } else {
@@ -98,33 +105,26 @@ export default function Wall() {
 
   const handleNewButton = () => {
     setModalId("");
-    setModalTitleField("");
-    setModalFileField("");
+    setModalUnitId(modalUnitList[0]["id"])
+    setModalAreaId(modalAreaList[0]["id"])
+    setModalDateField()
     setShowModal(true);
   };
 
   const handleModalSave = async () => {
-    if (modalTitleField) {
+    if (modalUnitId && modalAreaId && modalDateField) {
       setModalLoading(true);
       let result;
       let data = {
-        title: modalTitleField,
+        id_unit: modalUnitId,
+        id_area: modalAreaId,
+        reservation_date: modalDateField
       };
 
       if (modalId === "") {
-        if(modalFileField) {
-          data.file = modalFileField
-          result = await api.addDocument(data);
-        } else {
-          alert("Selecione o arquivo!")
-          setModalLoading(false)
-          return
-        }
+       result = await api.addReservation(data)
       } else {
-        if(modalFileField) {
-          data.file = modalFileField
-        }
-        result = await api.updateDocument(modalId, data);
+        result = await api.updateReservation(modalId,data)
       }
 
       setModalLoading(false);
@@ -139,10 +139,6 @@ export default function Wall() {
     }
   };
 
-  const handleDownloadButton = (index) => {
-    window.open(list[index]['fileurl'])
-  }
-
   return (
     <>
       <CRow>
@@ -150,10 +146,12 @@ export default function Wall() {
           <h2>Reservas</h2>
           <CCard>
             <CCardHeader>
-              <CButton 
-              color="primary" 
-              onClick={handleNewButton}
-              disabled={modalUnitList.length===0||modalAreaList.length===0}
+              <CButton
+                color="primary"
+                onClick={handleNewButton}
+                disabled={
+                  modalUnitList.length === 0 || modalAreaList.length === 0
+                }
               >
                 <CIcon name="cil-check" />
                 Nova Reserva
@@ -171,20 +169,21 @@ export default function Wall() {
                 striped
                 bordered
                 pagination
-                itemsPerPage={5}
+                itemsPerPage={10}
                 scopedSlots={{
-                  "reservation_date" : (item) => (
-                    <td>
-                      {item.reservation_date_formatted}
-                    </td>
+                  reservation_date: (item) => (
+                    <td>{item.reservation_date_formatted}</td>
                   ),
-                  "actions": (item, index) => (
+                  actions: (item, index) => (
                     <td>
                       <CButtonGroup>
                         <CButton
                           color="info"
-                          onClick={() => handleEditButton(index)}
-                          disabled={modalUnitList.length===0||modalAreaList.length===0}
+                          onClick={() => handleEditButton(item.id)}
+                          disabled={
+                            modalUnitList.length === 0 ||
+                            modalAreaList.length === 0
+                          }
                         >
                           Editar
                         </CButton>
@@ -209,16 +208,19 @@ export default function Wall() {
           {modalId === "" ? "Nova" : "Editar"} Reserva
         </CModalHeader>
         <CModalBody>
-
           <CFormGroup>
             <CLabel htmlFor="modal_unit">Unidade</CLabel>
             <CSelect
               id="modal-unit"
               custom
-              onChange={e=>setModalUnitId(e.target.value)}
+              onChange={(e) => setModalUnitId(e.target.value)}
+              value={modalUnitId}
             >
-              {modalUnitList.map((item,index)=>(
-                <option key={index} value={item.id}>
+              {modalUnitList.map((item, index) => (
+                <option
+                  key={index}
+                  value={item.id}
+                >
                   {item.name}
                 </option>
               ))}
@@ -230,11 +232,14 @@ export default function Wall() {
             <CSelect
               id="modal-area"
               custom
-              onChange={e=>setModalAreaId(e.target.value)}
-
+              onChange={(e) => setModalAreaId(e.target.value)}
+              value={modalAreaId}
             >
-              {modalAreaList.map((item,index)=>(
-                <option key={index} value={item.id}>
+              {modalAreaList.map((item, index) => (
+                <option
+                  key={index}
+                  value={item.id}
+                >
                   {item.title}
                 </option>
               ))}
@@ -251,7 +256,6 @@ export default function Wall() {
               disabled={modalLoading}
             />
           </CFormGroup>
-
         </CModalBody>
         <CModalFooter>
           <CButton
