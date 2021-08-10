@@ -82,7 +82,6 @@ export default function Wall() {
 
   const handleRemoveButton = async (id) => {
     if (window.confirm("Tem certeza que deseja excluir?")) {
-      let index = list.findIndex((v) => v.id === id);
       const result = await api.removeUser(id);
       if (result.error === "") {
         getList();
