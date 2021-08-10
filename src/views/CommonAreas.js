@@ -15,7 +15,6 @@ import {
   CFormGroup,
   CLabel,
   CInput,
-  CSelect,
   CSwitch,
   CInputCheckbox,
 } from "@coreui/react";
@@ -31,27 +30,20 @@ export default function Wall() {
   const [modalLoading, setModalLoading] = useState(false);
   const [modalId, setModalId] = useState("");
 
-  const [modalAllowedField,setModalAllowedField] = useState(1)
-  const [modalTitleField,setModalTitleField] = useState("")
-  const [modalCoverField,setModalCoverField] = useState("")
-  const [modalDaysField,setModalDaysField] = useState([])
-  const [modalStartTimeField,setModalStartTimeField] = useState("")
-  const [modalEndTimeField,setModalEndTimeField] = useState("")
-
-
-  const [modalUnitList, setModalUnitList] = useState([]);
-  const [modalAreaList, setModalAreaList] = useState([]);
-  const [modalUnitId, setModalUnitId] = useState(0);
-  const [modalAreaId, setModalAreaId] = useState(0);
-  const [modalDateField, setModalDateField] = useState("");
+  const [modalAllowedField, setModalAllowedField] = useState(1);
+  const [modalTitleField, setModalTitleField] = useState("");
+  const [modalCoverField, setModalCoverField] = useState("");
+  const [modalDaysField, setModalDaysField] = useState([]);
+  const [modalStartTimeField, setModalStartTimeField] = useState("");
+  const [modalEndTimeField, setModalEndTimeField] = useState("");
 
   const fields = [
-    { label: "Ativo", key: "allowed", sorter: false },
-    { label: "Capa", key: "cover", sorter: false },
+    { label: "Ativo", key: "allowed", filter: false,sorter: false },
+    { label: "Capa", key: "cover", filter: false,sorter: false },
     { label: "Título", key: "title" },
     { label: "Dias de funcionamento", key: "days" },
-    { label: "Horário de início", key: "start_time" },
-    { label: "Horário de fim", key: "end_time" },
+    { label: "Horário de início", key: "start_time",filter: false },
+    { label: "Horário de fim", key: "end_time" ,filter: false},
     {
       label: "Ações",
       key: "actions",
@@ -84,15 +76,19 @@ export default function Wall() {
     let index = list.findIndex((v) => v.id === id);
 
     setModalId(list[index]["id"]);
-    setModalUnitId(list[index]["id_unit"]);
-    setModalAreaId(list[index]["id_area"]);
-    setModalDateField(list[index]["reservation_date"]);
+    setModalAllowedField(list[index]["allowed"]);
+    setModalTitleField(list[index]["title"]);
+    setModalCoverField("");
+    setModalDaysField(list[index]["days".split(",")]);
+    setModalStartTimeField(list[index]["start_time"]);
+    setModalEndTimeField(list[index]["end_time"]);
+
     setShowModal(true);
   };
 
   const handleRemoveButton = async (id) => {
     if (window.confirm("Tem certeza que deseja excluir?")) {
-      const result = await api.removeReservation(id);
+      const result = await api.removeArea(id);
       if (result.error === "") {
         getList();
       } else {
@@ -103,29 +99,35 @@ export default function Wall() {
 
   const handleNewButton = () => {
     setModalId("");
-    setModalAllowedField(1)
-    setModalTitleField("")
-    setModalCoverField("")
-    setModalDaysField([])
-    setModalStartTimeField("")
-    setModalEndTimeField("")
+    setModalAllowedField(1);
+    setModalTitleField("");
+    setModalCoverField("");
+    setModalDaysField([]);
+    setModalStartTimeField("");
+    setModalEndTimeField("");
     setShowModal(true);
   };
 
   const handleModalSave = async () => {
-    if (modalUnitId && modalAreaId && modalDateField) {
+    if (modalTitleField && modalStartTimeField && modalEndTimeField) {
       setModalLoading(true);
       let result;
       let data = {
-        id_unit: modalUnitId,
-        id_area: modalAreaId,
-        reservation_date: modalDateField,
+        allowed: modalAllowedField,
+        title: modalTitleField,
+        days: modalDaysField.join(","),
+        start_time: modalStartTimeField,
+        end_time: modalEndTimeField,
       };
 
+      if(modalCoverField) {
+        data.cover = modalCoverField
+      } 
+
       if (modalId === "") {
-        result = await api.addReservation(data);
+        result = await api.addArea(data);
       } else {
-        result = await api.updateReservation(modalId, data);
+        result = await api.updateArea(modalId, data);
       }
 
       setModalLoading(false);
@@ -140,23 +142,30 @@ export default function Wall() {
     }
   };
 
-  const handleSwitchClick = () => {
-
+  const handleSwitchClick = async (item) => {
+    setLoading(true)
+    const result = await api.updateAreaAllowed(item.id)
+    setLoading(false)
+    if(result.error === "") {
+      getList()
+    } else {
+      alert(result.error)
+    }
   };
 
   const handleModalSwitchClick = () => {
-    setModalAllowedField( 1 - modalAllowedField )
-  }
+    setModalAllowedField(1 - modalAllowedField);
+  };
 
-  const toggleModalDays = (item,event) => {
-    let days = [...modalDaysField]
-    if(event.target.checked === false) {
-      days = days.filter(day=>day!==item);
+  const toggleModalDays = (item, event) => {
+    let days = [...modalDaysField];
+    if (event.target.checked === false) {
+      days = days.filter((day) => day !== item);
     } else {
-      days.push(item)
+      days.push(item);
     }
-    setModalDaysField(days)
-  }
+    setModalDaysField(days);
+  };
 
   return (
     <>
@@ -165,10 +174,7 @@ export default function Wall() {
           <h2>Áreas Comuns</h2>
           <CCard>
             <CCardHeader>
-              <CButton
-                color="primary"
-                onClick={handleNewButton}
-              >
+              <CButton color="primary" onClick={handleNewButton}>
                 <CIcon name="cil-check" />
                 Nova Área Comum
               </CButton>
@@ -207,19 +213,23 @@ export default function Wall() {
                     </td>
                   ),
                   days: (item) => {
-                    let daysWords = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"]
-                    let days = item.days.split(",")
-                    let dayString = []
+                    let daysWords = [
+                      "Segunda",
+                      "Terça",
+                      "Quarta",
+                      "Quinta",
+                      "Sexta",
+                      "Sábado",
+                      "Domingo",
+                    ];
+                    let days = item.days.split(",");
+                    let dayString = [];
                     for (let i in days) {
-                      if(days[i] && daysWords[days[i]]) {
-                        dayString.push(daysWords[days[i]])
+                      if (days[i] && daysWords[days[i]]) {
+                        dayString.push(daysWords[days[i]]);
                       }
                     }
-                    return (
-                      <td>
-                        {dayString.join(", ")}
-                      </td>
-                    )
+                    return <td>{dayString.join(", ")}</td>;
                   },
                   actions: (item) => (
                     <td>
@@ -247,20 +257,29 @@ export default function Wall() {
       </CRow>
 
       <CModal show={showModal} onClose={handleCloseModal}>
-
         <CModalHeader closeButton>
           {modalId === "" ? "Nova" : "Editar"} Área Comum
         </CModalHeader>
 
         <CModalBody>
-
           <CFormGroup>
             <CLabel htmlFor="modal_allowed">Ativo</CLabel>
-            <br/>
+            <br />
             <CSwitch
               color="success"
               checked={modalAllowedField}
               onChange={handleModalSwitchClick}
+            />
+          </CFormGroup>
+
+          <CFormGroup>
+            <CLabel htmlFor="modal-title">Título</CLabel>
+            <CInput
+              type="text"
+              id="modal-title"
+              name="title"
+              value={modalTitleField}
+              onChange={(e) => setModalTitleField(e.target.value)}
             />
           </CFormGroup>
 
@@ -271,32 +290,31 @@ export default function Wall() {
               id="modal-cover"
               name="cover"
               placeholder="Escolha uma imagem"
-              onChange={(e)=>setModalCoverField(e.target.files[0])}
+              onChange={(e) => setModalCoverField(e.target.files[0])}
             />
           </CFormGroup>
 
           <CFormGroup>
             <CLabel htmlFor="modal-days">Dias de funcionamento</CLabel>
-            <div style={{marginLeft: 20}}>
-
+            <div style={{ marginLeft: 20 }}>
               <div>
                 <CInputCheckbox
                   id="modal-days-0"
                   name="modal-days"
                   value={0}
                   checked={modalDaysField.includes("0")}
-                  onChange={(e)=>toggleModalDays("0",e)}
+                  onChange={(e) => toggleModalDays("0", e)}
                 />
                 <CLabel htmlFor="modal-days-0">Segunda-Feira</CLabel>
               </div>
-              
+
               <div>
                 <CInputCheckbox
                   id="modal-days-1"
                   name="modal-days"
                   value={1}
                   checked={modalDaysField.includes("1")}
-                  onChange={(e)=>toggleModalDays("1",e)}
+                  onChange={(e) => toggleModalDays("1", e)}
                 />
                 <CLabel htmlFor="modal-days-1">Terça-Feira</CLabel>
               </div>
@@ -307,7 +325,7 @@ export default function Wall() {
                   name="modal-days"
                   value={2}
                   checked={modalDaysField.includes("2")}
-                  onChange={(e)=>toggleModalDays("2",e)}
+                  onChange={(e) => toggleModalDays("2", e)}
                 />
                 <CLabel htmlFor="modal-days-2">Quarta-Feira</CLabel>
               </div>
@@ -316,9 +334,10 @@ export default function Wall() {
                 <CInputCheckbox
                   id="modal-days-3"
                   name="modal-days"
-                  value={3}e
+                  value={3}
+                  e
                   checked={modalDaysField.includes("3")}
-                  onChange={(e)=>toggleModalDays("3",e)}
+                  onChange={(e) => toggleModalDays("3", e)}
                 />
                 <CLabel htmlFor="modal-days-3">Quinta-Feira</CLabel>
               </div>
@@ -329,7 +348,7 @@ export default function Wall() {
                   name="modal-days"
                   value={4}
                   checked={modalDaysField.includes("4")}
-                  onChange={(e)=>toggleModalDays("4",e)}
+                  onChange={(e) => toggleModalDays("4", e)}
                 />
                 <CLabel htmlFor="modal-days-4">Sexta-Feira</CLabel>
               </div>
@@ -340,7 +359,7 @@ export default function Wall() {
                   name="modal-days"
                   value={5}
                   checked={modalDaysField.includes("5")}
-                  onChange={(e)=>toggleModalDays("5",e)}
+                  onChange={(e) => toggleModalDays("5", e)}
                 />
                 <CLabel htmlFor="modal-days-5">Sábado</CLabel>
               </div>
@@ -351,14 +370,13 @@ export default function Wall() {
                   name="modal-days"
                   value={6}
                   checked={modalDaysField.includes("6")}
-                  onChange={(e)=>toggleModalDays("6",e)}
+                  onChange={(e) => toggleModalDays("6", e)}
                 />
                 <CLabel htmlFor="modal-days-6">Domingo</CLabel>
               </div>
-
             </div>
           </CFormGroup>
-          
+
           <CFormGroup>
             <CLabel htmlFor="modal-start-time">Horário de início</CLabel>
             <CInput
@@ -366,7 +384,7 @@ export default function Wall() {
               id="modal-start-time"
               name="start_time"
               value={modalStartTimeField}
-              onChange={(e)=>setModalStartTimeField(e.target.value)}
+              onChange={(e) => setModalStartTimeField(e.target.value)}
             />
           </CFormGroup>
 
@@ -377,10 +395,9 @@ export default function Wall() {
               id="modal-end-time"
               name="end"
               value={modalEndTimeField}
-              onChange={(e)=>setModalEndTimeField(e.target.value)}
+              onChange={(e) => setModalEndTimeField(e.target.value)}
             />
           </CFormGroup>
-            
         </CModalBody>
         <CModalFooter>
           <CButton
