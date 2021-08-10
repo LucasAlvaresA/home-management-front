@@ -25,7 +25,6 @@ export default function Wall() {
     { label: "Descrição", key: "description",sorter: false},
     { label: "Foto", key: "photo",filter: false,sorter: false},
     { label: "Data", key: "datecreated"},
-
   ];
 
   useEffect(() => {
