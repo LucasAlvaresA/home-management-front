@@ -157,7 +157,19 @@ export default function services() {
       let token = localStorage.getItem("token");
       let json = await request("detele", `/reservation/${id}`, {}, token);
       return json;
-    }
+    },
+
+    getWarnings: async () => {
+      let token = localStorage.getItem("token");
+      let json = await request("get", "/warnings", {}, token);
+      return json;
+    },
+
+    updateWarning: async (id) => {
+      let token = localStorage.getItem("token");
+      let json = await request("put", `/warning/${id}`, {}, token);
+      return json;
+    },
 
   };
 }
