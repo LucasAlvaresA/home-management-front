@@ -17,6 +17,7 @@ import {
   CInput,
   CSelect,
   CSwitch,
+  CInputCheckbox,
 } from "@coreui/react";
 import CIcon from "@coreui/icons-react";
 import useApi from "../services/api";
@@ -147,6 +148,16 @@ export default function Wall() {
     setModalAllowedField( 1 - modalAllowedField )
   }
 
+  const toggleModalDays = (item,event) => {
+    let days = [...modalDaysField]
+    if(event.target.checked === false) {
+      days = days.filter(day=>day!==item);
+    } else {
+      days.push(item)
+    }
+    setModalDaysField(days)
+  }
+
   return (
     <>
       <CRow>
@@ -266,6 +277,86 @@ export default function Wall() {
 
           <CFormGroup>
             <CLabel htmlFor="modal-days">Dias de funcionamento</CLabel>
+            <div style={{marginLeft: 20}}>
+
+              <div>
+                <CInputCheckbox
+                  id="modal-days-0"
+                  name="modal-days"
+                  value={0}
+                  checked={modalDaysField.includes("0")}
+                  onChange={(e)=>toggleModalDays("0",e)}
+                />
+                <CLabel htmlFor="modal-days-0">Segunda-Feira</CLabel>
+              </div>
+              
+              <div>
+                <CInputCheckbox
+                  id="modal-days-1"
+                  name="modal-days"
+                  value={1}
+                  checked={modalDaysField.includes("1")}
+                  onChange={(e)=>toggleModalDays("1",e)}
+                />
+                <CLabel htmlFor="modal-days-1">Terça-Feira</CLabel>
+              </div>
+
+              <div>
+                <CInputCheckbox
+                  id="modal-days-2"
+                  name="modal-days"
+                  value={2}
+                  checked={modalDaysField.includes("2")}
+                  onChange={(e)=>toggleModalDays("2",e)}
+                />
+                <CLabel htmlFor="modal-days-2">Quarta-Feira</CLabel>
+              </div>
+
+              <div>
+                <CInputCheckbox
+                  id="modal-days-3"
+                  name="modal-days"
+                  value={3}e
+                  checked={modalDaysField.includes("3")}
+                  onChange={(e)=>toggleModalDays("3",e)}
+                />
+                <CLabel htmlFor="modal-days-3">Quinta-Feira</CLabel>
+              </div>
+
+              <div>
+                <CInputCheckbox
+                  id="modal-days-4"
+                  name="modal-days"
+                  value={4}
+                  checked={modalDaysField.includes("4")}
+                  onChange={(e)=>toggleModalDays("4",e)}
+                />
+                <CLabel htmlFor="modal-days-4">Sexta-Feira</CLabel>
+              </div>
+
+              <div>
+                <CInputCheckbox
+                  id="modal-days-5"
+                  name="modal-days"
+                  value={5}
+                  checked={modalDaysField.includes("5")}
+                  onChange={(e)=>toggleModalDays("5",e)}
+                />
+                <CLabel htmlFor="modal-days-5">Sábado</CLabel>
+              </div>
+
+              <div>
+                <CInputCheckbox
+                  id="modal-days-6"
+                  name="modal-days"
+                  value={6}
+                  checked={modalDaysField.includes("6")}
+                  onChange={(e)=>toggleModalDays("6",e)}
+                />
+                <CLabel htmlFor="modal-days-6">Domingo</CLabel>
+              </div>
+
+            </div>
           </CFormGroup>
           
           <CFormGroup>
