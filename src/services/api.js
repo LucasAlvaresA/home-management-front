@@ -91,12 +91,12 @@ export default function services() {
       let req = await fetch(`${baseUrl}/docs`, {
         method: "POST",
         headers: {
-          "Authorization" : `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: formData
-      })
-      let json = await req.json()
-      return json
+        body: formData,
+      });
+      let json = await req.json();
+      return json;
     },
 
     updateDocument: async (id, data) => {
@@ -109,12 +109,12 @@ export default function services() {
       let req = await fetch(`${baseUrl}/doc/${id}`, {
         method: "POST",
         headers: {
-          "Authorization" : `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: formData
-      })
-      let json = await req.json()
-      return json
+        body: formData,
+      });
+      let json = await req.json();
+      return json;
     },
 
     removeDocument: async (id) => {
@@ -171,5 +171,16 @@ export default function services() {
       return json;
     },
 
+    getFoundAndLost: async () => {
+      let token = localStorage.getItem("token");
+      let json = await request("get", "/foundandlost", {}, token);
+      return json;
+    },
+
+    updateFoundAndLost: async (id) => {
+      let token = localStorage.getItem("token");
+      let json = await request("put", `/foundandlost/${id}`, {}, token);
+      return json;
+    },
   };
 }
