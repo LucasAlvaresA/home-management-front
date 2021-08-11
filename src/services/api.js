@@ -155,7 +155,7 @@ export default function services() {
 
     removeReservation: async (id) => {
       let token = localStorage.getItem("token");
-      let json = await request("detele", `/reservation/${id}`, {}, token);
+      let json = await request("delete", `/reservation/${id}`, {}, token);
       return json;
     },
 
@@ -191,7 +191,7 @@ export default function services() {
 
     removeUser: async (id) => {
       let token = localStorage.getItem("token");
-      let json = await request("detele", `/user/${id}`, {}, token);
+      let json = await request("delete", `/user/${id}`, {}, token);
       return json;
     },
 
@@ -209,7 +209,7 @@ export default function services() {
 
     removeArea: async (id) => {
       let token = localStorage.getItem("token");
-      let json = await request("detele", `/area/${id}`, {}, token);
+      let json = await request("delete", `/area/${id}`, {}, token);
       return json;
     },
 
@@ -250,6 +250,30 @@ export default function services() {
     updateAreaAllowed: async (id) => {
       let token = localStorage.getItem("token");
       let json = await request("put", `/area/${id}/allowed`, {}, token);
+      return json;
+    },
+
+    searchUser: async (query) => {
+      let token = localStorage.getItem("token");
+      let json = await request("get", `/users/search`, {q: query}, token);
+      return json;
+    },
+
+    addUnit: async (data) => {
+      let token = localStorage.getItem("token");
+      let json = await request("post", `/units`, data, token);
+      return json;
+    },
+
+    updateUnit: async (id,data) => {
+      let token = localStorage.getItem("token");
+      let json = await request("put",`/unit/${id}`, data, token);
+      return json;
+    },
+
+    removeUnit: async (id) => {
+      let token = localStorage.getItem("token");
+      let json = await request("delete",`/unit/${id}`, {}, token);
       return json;
     },
   };
