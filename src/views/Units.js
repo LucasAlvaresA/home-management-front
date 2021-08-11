@@ -35,12 +35,6 @@ export default function Wall() {
   const [modalOwnerList, setModalOwnerList] = useState([]);
   const [modalOwnerField, setModalOwnerField] = useState(null);
 
-  const [modalUnitList, setModalUnitList] = useState([]);
-  const [modalAreaList, setModalAreaList] = useState([]);
-  const [modalUnitId, setModalUnitId] = useState(0);
-  const [modalAreaId, setModalAreaId] = useState(0);
-  const [modalDateField, setModalDateField] = useState("");
-
   const fields = [
     { label: "Unidade", key: "name", sorter: false },
     { label: "Proprietário", key: "name_owner", sorter: false },
@@ -156,7 +150,7 @@ export default function Wall() {
   };
 
   const selectModalOwnerField = (id) => {
-    let item = modalOwnerList.find((item) => item.id == id);
+    let item = modalOwnerList.find((item) => item.id === id);
     setModalOwnerField(item);
     setModalOwnerList([]);
     setModalOwnerSearchField("");

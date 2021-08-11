@@ -204,12 +204,7 @@ export default function Wall() {
                   ),
                   cover: (item) => (
                     <td>
-                      <img src={item.cover} width={100} />
-                    </td>
-                  ),
-                  cover: (item) => (
-                    <td>
-                      <img src={item.cover} width={100} />
+                      <img src={item.cover} width={100} alt="item cover" />
                     </td>
                   ),
                   days: (item) => {
